@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="ecs1001">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../ecs100.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../ecs100.jar!/" />
+    </SOURCES>
+  </library>
+</component>
