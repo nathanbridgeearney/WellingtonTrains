@@ -10,6 +10,7 @@
 
 import ecs100.*;
 
+import java.net.SecureCacheResponse;
 import java.util.*;
 import java.io.*;
 import java.nio.file.*;
@@ -169,14 +170,17 @@ public class WellingtonTrains {
             for (String line : allLines) {
                 Scanner sc = new Scanner(line);
                 String name = sc.next();
-                TrainLine trainline = new TrainLine(name);
-                TrainService trainService = new TrainService(trainline);
+                TrainLine trainline = allTrainLines.get(name);
+
                 List<String> line2 = Files.readAllLines(Path.of("data/" + name + "-services.data"));
                 for (String i : line2) {
+                    TrainService trainService = new TrainService(trainline);
                     Scanner sc2 = new Scanner(i);
-                    int time = sc2.nextInt();
-                    trainService.addTime(time);
-                    allTrainLines.get(name).addTrainService(trainService);
+                    while (sc2.hasNext()) {
+                        int time = sc2.nextInt();
+                        trainService.addTime(time);
+                    }
+                    trainline.addTrainService(trainService);
                 }
             }
         } catch (IOException e) {
@@ -186,34 +190,29 @@ public class WellingtonTrains {
 
     private void findTrip(String stationName, String destinationName, int startTime) {
         UI.clearText();
-        int firstTime = 0;
-        int lastTime = 0;
-        boolean done = false;
+        Station firstStat = allStations.get(stationName);
+        Station lastStat = allStations.get(destinationName);
 
+        for (TrainLine trainlines : firstStat.getTrainLines()) {
 
-        ArrayList<TrainLine> first = new ArrayList<>();
-        for (Station station : allStations.values()) {
-            if (Objects.equals(stationName, station.getName())) {
-                first.addAll(station.getTrainLines());
-            }
-        }
-        String one = "Please input a correct station";
-        for (TrainLine trainlines : first) {
-            for (TrainService trainservice : trainlines.getTrainServices()) {
-                for (Integer times : trainservice.getTimes()) {
-                    int two = times;
-                    if (two >= startTime) {
-                        if (!done) {
-                            firstTime = two;
-                            one = trainservice.getTrainID();
-                            done = true;
+            if (lastStat.getTrainLines().contains(trainlines)) {
+
+                if (trainlines.getStations().indexOf(firstStat) < trainlines.getStations().indexOf(lastStat)) {
+
+                    for (TrainService trainservice : trainlines.getTrainServices()) {
+                        int two = trainservice.getTimes().get(trainlines.getStations().indexOf(firstStat));
+                        if (two >= startTime) {
+                            int t = trainservice.getTimes().get(trainlines.getStations().indexOf(firstStat));
+                            int finalTime = trainservice.getTimes().get(trainlines.getStations().indexOf(lastStat));
+                            UI.println("leaves " + stationName + " at " + two + " and arrives at " + finalTime);
+                            return;
                         }
                     }
                 }
+
             }
         }
-        UI.println(one + " leaves "+ stationName + " at " + firstTime + " arrives " + destinationName + " at");
-
+        UI.println("FAILED");
     }
 
 
