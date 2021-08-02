@@ -111,20 +111,22 @@ public class WellingtonTrains {
         }
     }
 
+    //Pasess values to distances and prints the 10 closest stations
     private void closest(double[] mouseCoords) {
         int count = 0;
         TreeMap<Double, String> stationMap = new TreeMap<>();
         allStations.forEach((key, value) -> stationMap.put((distance(value.getXCoord(), value.getYCoord(), mouseCoords)), key));
-        for (Double key : stationMap.keySet()) {
+        for (Double dist : stationMap.keySet()) {
             if (count >= 10) {
                 break;
             } else {
-                UI.println(count + 1 + ": " + stationMap.get(key) + " is " + key + " km away");
+                UI.println(stationMap.get(dist) + " is " + dist + " km away");
                 count++;
             }
         }
     }
 
+    //Works out distance between coordinates
     private Double distance(double x, double y, double[] co) {
         double xdiff = x >= co[0] ? x - co[0] : co[0] - x;
         double ydiff = y >= co[1] ? y - co[1] : co[1] - y;
@@ -135,6 +137,7 @@ public class WellingtonTrains {
     // Methods for loading data and answering queries
 
     /*# YOUR CODE HERE */
+    //Loads the station data for access later
     public void loadStationData() {
         try {
             List<String> allStat = Files.readAllLines(Path.of("data/stations.data"));
@@ -153,6 +156,7 @@ public class WellingtonTrains {
 
     }
 
+    //Loads Train line data into the program for access
     public void loadTrainLineData() {
         try {
             List<String> allLines = Files.readAllLines(Path.of("data/train-lines.data"));
@@ -175,6 +179,7 @@ public class WellingtonTrains {
         }
     }
 
+    //Loads the Train service data for access
     public void loadTrainServicesData() {
         try {
             List<String> allLines = Files.readAllLines(Path.of("data/train-lines.data"));
@@ -198,6 +203,8 @@ public class WellingtonTrains {
         }
     }
 
+    //Finds the earliest time that you can leave at from a station to a destination, the destination time and the train line.
+    //Also finds the amount of fares zones that the train will pass through during the trip.
     private void findTrip(String stationName, String destinationName, int startTime) {
         UI.clearText();
         boolean done = false;
@@ -217,10 +224,9 @@ public class WellingtonTrains {
                             int two = trainservice.getTimes().get(trainlines.getStations().indexOf(firstStat));
                             if (two >= startTime) {
                                 if (!done) {
-                                    int t = trainservice.getTimes().get(trainlines.getStations().indexOf(firstStat));
                                     int finalTime = trainservice.getTimes().get(trainlines.getStations().indexOf(lastStat));
                                     int zones = 1 + Math.abs(firstStat.getZone() - lastStat.getZone());
-                                    UI.println(trainservice + "leaves " + stationName + " at " + two + " and arrives at " + finalTime);
+                                    UI.println(trainservice.getTrainID() + " line leaves " + stationName + " at " + two + " and arrives at " + finalTime);
                                     UI.println("It passes through " + zones + " zones");
                                     done = true;
                                 }
@@ -234,7 +240,7 @@ public class WellingtonTrains {
         }
     }
 
-
+    //Finds the earliest a train can leave from a station on each line
     private void findNextServices(String stationName, int startTime) {
         UI.clearText();
         ArrayList<TrainLine> first = new ArrayList<>();
@@ -259,6 +265,7 @@ public class WellingtonTrains {
         }
     }
 
+    //Checks if two stations are connected by a line and prints the trainline information
     private void checkConnected(String stationName, String destinationName) {
         UI.clearText();
         Station first = allStations.get(stationName);
@@ -276,7 +283,7 @@ public class WellingtonTrains {
         }
     }
 
-
+    //Lists all the stations on a train line
     private void listStationsOnLine(String lineName) {
         UI.clearText();
         ArrayList<Station> temp = new ArrayList<>();
@@ -288,6 +295,7 @@ public class WellingtonTrains {
         for (Station i : temp) UI.println(i);
     }
 
+    //List all the train lines connected to a station
     private void listLinesOfStation(String stationName) {
         UI.clearText();
         ArrayList<TrainLine> temp = new ArrayList<>();
@@ -302,12 +310,14 @@ public class WellingtonTrains {
         }
     }
 
+    // List all the train lines
     private void listAllTrainLines() {
         UI.clearText();
         ArrayList<TrainLine> temp = new ArrayList<>(allTrainLines.values());
         for (TrainLine i : temp) UI.println(i);
     }
 
+    //List all the stations ins alphabetical order
     private void listStationsByName() {
         UI.clearText();
         ArrayList<Station> temp = new ArrayList<>();
@@ -318,6 +328,7 @@ public class WellingtonTrains {
         for (Station i : temp) UI.println(i);
     }
 
+    //List all the stations
     private void listAllStations() {
         UI.clearText();
         for (Station stations : allStations.values())
