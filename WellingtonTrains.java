@@ -107,20 +107,31 @@ public class WellingtonTrains {
         if (action.equals("released")) {
             /*# YOUR CODE HERE */
             UI.clearText();
-            TreeMap<Double, String> Distances = new TreeMap<Double, String>();
-            for (Map.Entry<String, Station> entrySet : allStations.entrySet()) {
-                double xdiff = Math.max(x, entrySet.getValue().getXCoord() - Math.min(x, entrySet.getValue().getXCoord()));
-                double ydiff = Math.max(y, entrySet.getValue().getYCoord() - Math.min(y, entrySet.getValue().getYCoord()));
-                double distance = Math.hypot(xdiff, ydiff);
-                Distances.put(distance, entrySet.getValue().getName());
-            }
-            for (int i = 0; i < 10; i++) {
-                Map.Entry<Double, String> entrySet2 = Distances.pollFirstEntry();
-                UI.println(entrySet2.getKey() + "km: " + entrySet2.getValue());
+            closest(new double[]{x, y});
+        }
+    }
+
+    private void closest(double[] mouseCoords) {
+        int count = 0;
+        TreeMap<Double, String> stationMap = new TreeMap<>();
+        allStations.forEach((key, value) -> stationMap.put((distance(value.getXCoord(), value.getYCoord(), mouseCoords)), key));
+        for (Double key : stationMap.keySet()) {
+            if (count >= 10) {
+                break;
+            } else {
+                UI.println(count + 1 + ": " + stationMap.get(key) + " is " + key + " km away");
+                count++;
             }
         }
     }
 
+    private Double distance(double x, double y, double[] co) {
+        double xdiff = x >= co[0] ? x - co[0] : co[0] - x;
+        double ydiff = y >= co[1] ? y - co[1] : co[1] - y;
+        double length = Math.hypot(xdiff, ydiff);
+        length = (double) ((int) (length * 100)) / 100;
+        return length;
+    }
     // Methods for loading data and answering queries
 
     /*# YOUR CODE HERE */
@@ -171,7 +182,6 @@ public class WellingtonTrains {
                 Scanner sc = new Scanner(line);
                 String name = sc.next();
                 TrainLine trainline = allTrainLines.get(name);
-
                 List<String> line2 = Files.readAllLines(Path.of("data/" + name + "-services.data"));
                 for (String i : line2) {
                     TrainService trainService = new TrainService(trainline);
@@ -190,29 +200,38 @@ public class WellingtonTrains {
 
     private void findTrip(String stationName, String destinationName, int startTime) {
         UI.clearText();
+        boolean done = false;
         Station firstStat = allStations.get(stationName);
         Station lastStat = allStations.get(destinationName);
-
-        for (TrainLine trainlines : firstStat.getTrainLines()) {
-
-            if (lastStat.getTrainLines().contains(trainlines)) {
-
-                if (trainlines.getStations().indexOf(firstStat) < trainlines.getStations().indexOf(lastStat)) {
-
-                    for (TrainService trainservice : trainlines.getTrainServices()) {
-                        int two = trainservice.getTimes().get(trainlines.getStations().indexOf(firstStat));
-                        if (two >= startTime) {
-                            int t = trainservice.getTimes().get(trainlines.getStations().indexOf(firstStat));
-                            int finalTime = trainservice.getTimes().get(trainlines.getStations().indexOf(lastStat));
-                            UI.println("leaves " + stationName + " at " + two + " and arrives at " + finalTime);
-                            return;
+        ArrayList<TrainLine> first = new ArrayList<>();
+        for (Station station : allStations.values()) {
+            if (Objects.equals(stationName, station.getName())) {
+                first.addAll(station.getTrainLines());
+            }
+        }
+        if (!first.isEmpty() && lastStat != null) {
+            for (TrainLine trainlines : first) {
+                if (lastStat.getTrainLines().contains(trainlines)) {
+                    if (trainlines.getStations().indexOf(firstStat) < trainlines.getStations().indexOf(lastStat)) {
+                        for (TrainService trainservice : trainlines.getTrainServices()) {
+                            int two = trainservice.getTimes().get(trainlines.getStations().indexOf(firstStat));
+                            if (two >= startTime) {
+                                if (!done) {
+                                    int t = trainservice.getTimes().get(trainlines.getStations().indexOf(firstStat));
+                                    int finalTime = trainservice.getTimes().get(trainlines.getStations().indexOf(lastStat));
+                                    int zones = 1 + Math.abs(firstStat.getZone() - lastStat.getZone());
+                                    UI.println(trainservice + "leaves " + stationName + " at " + two + " and arrives at " + finalTime);
+                                    UI.println("It passes through " + zones + " zones");
+                                    done = true;
+                                }
+                            }
                         }
                     }
                 }
-
             }
+        } else {
+            UI.println("Please input a correct station");
         }
-        UI.println("FAILED");
     }
 
 
